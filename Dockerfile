@@ -7,17 +7,15 @@ RUN cd /root && \
     sed -i 's/^#\s*\(deb.*partner\)$/\1/g' /etc/apt/sources.list && \
     sed -i 's/^#\s*\(deb.*restricted\)$/\1/g' /etc/apt/sources.list && \ 
     apt-get update -y && \ 
+    apt-get upgrade -y && \
     apt-get install -yqq locales  && \ 
     apt-get install -yqq \
         mate-desktop-environment-core \
         mate-themes \
-        mate-accessibility-profiles \
         mate-applet-appmenu \
         mate-applet-brisk-menu \
         mate-applets \
         mate-applets-common \
-        mate-calc \
-        mate-calc-common \
         mate-dock-applet \
         mate-hud \
         mate-indicator-applet \
@@ -39,14 +37,14 @@ RUN cd /root && \
         supervisor \
         sudo \
         tzdata \
-        vim \
+        nano \
         mc \
         ca-certificates \
         xterm \
         curl \
         wget \
         wmctrl \
-        epiphany-browser && \
+        firefox && \
     ln -fs /usr/share/zoneinfo/UTC /etc/localtime && dpkg-reconfigure -f noninteractive tzdata && \
     apt-get -y install \
         git \
@@ -70,6 +68,10 @@ RUN cd /root && \
         nasm \
         xserver-xorg-dev \
         fuse \
+        python3-pip \
+        mplayer \
+        pavucontrol \
+        screen \
         build-essential \
         pkg-config \
         libpulse-dev m4 intltool dpkg-dev \
@@ -79,13 +81,11 @@ RUN cd /root && \
     apt-get update && apt build-dep pulseaudio -y && \
     cd /tmp && apt source pulseaudio && \
     pulsever=$(pulseaudio --version | awk '{print $2}') && cd /tmp/pulseaudio-$pulsever && ./configure  && \
-    git clone https://github.com/neutrinolabs/pulseaudio-module-xrdp.git && cd pulseaudio-module-xrdp && ./bootstrap && ./configure PULSE_DIR="/tmp/pulseaudio-$pulsever" && make && \
+    git clone https://github.com/BlackStoneOfficial/pulseaudio-module-xrdp.git && cd pulseaudio-module-xrdp && ./bootstrap && ./configure PULSE_DIR="/tmp/pulseaudio-$pulsever" && make && \
     cd /tmp/pulseaudio-$pulsever/pulseaudio-module-xrdp/src/.libs && install -t "/var/lib/xrdp-pulseaudio-installer" -D -m 644 *.so && \
     cd /root && \
-    #git clone -b master https://github.com/neutrinolabs/xrdp.git && \
-    #git clone -b master https://github.com/neutrinolabs/xorgxrdp.git && \
-    git clone -b devel https://github.com/neutrinolabs/xrdp.git && \
-    git clone -b devel https://github.com/neutrinolabs/xorgxrdp.git && \
+    git clone -b devel https://github.com/BlackStoneOfficial/xrdp.git && \
+    git clone -b devel https://github.com/BlackStoneOfficial/xorgxrdp.git && \
     cd /root/xrdp && ./bootstrap && ./configure --enable-fuse --enable-jpeg --enable-vsock --enable-fdkaac --enable-opus --enable-mp3lame --enable-pixman && make && make install && \
     cd /root/xorgxrdp  && ./bootstrap && ./configure && make && make install && \
     cd /root && \
@@ -94,7 +94,6 @@ RUN cd /root && \
     # bugfix clipboard bug: [xrdp-chansrv] <defunct> && \
     apt-mark manual libfdk-aac1 && \
     apt-get -y purge \
-        git \
         libxfont-dev \
         libx11-dev \
         libxfixes-dev \
@@ -142,14 +141,12 @@ RUN cd /root && \
     echo "[program:xrdp]" >> /etc/supervisor/conf.d/xrdp.conf && \
     echo "command=/usr/local/sbin/xrdp -nodaemon" >> /etc/supervisor/conf.d/xrdp.conf && \
     echo "process_name = xrdp" >> /etc/supervisor/conf.d/xrdp.conf
-#RUN     echo "[program:dbus-daemon]" > /etc/supervisor/conf.d/dbus-daemon.conf && \
-#    echo "command=/usr/bin/dbus-daemon --system --nofork" >> /etc/supervisor/conf.d/dbus-daemon.conf && \
-#    echo "process_name = dbus-daemon" >> /etc/supervisor/conf.d/dbus-daemon.conf && \
-#    echo "user = messagebus"  >> /etc/supervisor/conf.d/dbus-daemon.conf
 
 COPY xrdp.ini /etc/xrdp/xrdp.ini
-
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu -p "$(openssl passwd -1 ubuntu)"
 COPY autostartup.sh /root/
 CMD ["/bin/bash", "/root/autostartup.sh"]
-                                    
 EXPOSE 3389 22
+USER appuser
+RUN cd ~
+RUN wget https://telegram.org/dl/desktop/linux -O tdesktop.tar.xz && tar -xf tdesktop.tar.xz && rm tdesktop.tar.xz
