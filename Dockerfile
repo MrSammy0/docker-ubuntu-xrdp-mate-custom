@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:3.04
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV DBUS_SESSION_BUS_ADDRESS=/dev/null
@@ -142,11 +142,11 @@ RUN cd /root && \
     echo "command=/usr/local/sbin/xrdp -nodaemon" >> /etc/supervisor/conf.d/xrdp.conf && \
     echo "process_name = xrdp" >> /etc/supervisor/conf.d/xrdp.conf
 
-COPY xrdp.ini /etc/xrdp/xrdp.ini
+COP xrdp.ini /etc/xrdp/xrdp.ini
 RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu -p "$(openssl passwd -1 ubuntu)"
 COPY autostartup.sh /root/
 CMD ["/bin/bash", "/root/autostartup.sh"]
 EXPOSE 3389 22
-USER appuser
+USER appuseraf
 RUN cd ~
 RUN wget https://telegram.org/dl/desktop/linux -O tdesktop.tar.xz && tar -xf tdesktop.tar.xz && rm tdesktop.tar.xz
